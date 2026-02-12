@@ -38,6 +38,7 @@ PACKAGING_CHOICES = [
 ]
 
 BATCH_CHOICES = [
+    ("2026_meat_alternatives","2026 Meat and Alternatives Collection"),
     ("2025_snapcan","SNAP-CAN 2025"),
     ("2026_baked_goods","2026 Baked Goods Collection"),
     ("2026_snack_foods","2026 Snack Foods Collection"),
