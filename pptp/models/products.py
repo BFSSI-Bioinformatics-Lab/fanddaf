@@ -38,6 +38,7 @@ PACKAGING_CHOICES = [
 ]
 
 BATCH_CHOICES = [
+    ("2026_fish_seafood","2026 Fish and Seafood Collection"),
     ("2026_meat_alternatives","2026 Meat and Alternatives Collection"),
     ("2026_frozen_refrig_apps","2026 Frozen and Refrigerated Appetizers Collection"),
     ("2026_refrig_sides_entrees","2026 Refrigerated Sides and Entrees Collection"),
