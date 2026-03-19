@@ -311,8 +311,6 @@ class CombinedUploadView(LoginRequiredMixin, View):
 
         if not product.nutrition_facts.exists():
             errors.append(_("At least one nutrition facts image is required"))
-        elif product.has_multiple_nutrition_facts and product.nutrition_facts.count() < 2:
-            errors.append(_("Multiple nutrition facts were indicated but not all were uploaded"))
 
         if not product.ingredients.exists():
             errors.append(_("At least one ingredients image is required"))
