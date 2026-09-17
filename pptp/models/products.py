@@ -37,18 +37,32 @@ PACKAGING_CHOICES = [
     ("other", "Other"),
 ]
 
-BATCH_CHOICES = [
-    ("2026_fish_seafood","2026 Fish and Seafood Collection"),
-    ("2026_meat_alternatives","2026 Meat and Alternatives Collection"),
-    ("2026_frozen_refrig_apps","2026 Frozen and Refrigerated Appetizers Collection"),
-    ("2026_refrig_sides_entrees","2026 Refrigerated Sides and Entrees Collection"),
-    ("2025_snapcan","SNAP-CAN 2025"),
-    ("2026_baked_goods","2026 Baked Goods Collection"),
-    ("2026_snack_foods","2026 Snack Foods Collection"),
-    ("tds","Total Diet Study"),
-    ("2025_supp_food","2025 Supplemented Food Collection"),
-    ("2025_frozen_entrees","2025 Frozen Entrees Collection"),
-]
+class Batch(models.Model):
+    """
+    A product collection batch that products can be assigned to.
+    Managed through the Django admin so new batches can be added
+    without a code change or deployment.
+    """
+    code = models.SlugField(
+        max_length=50,
+        unique=True,
+        help_text=_("Short unique identifier, e.g. '2026_fish_seafood'")
+    )
+    label = models.CharField(
+        max_length=255,
+        help_text=_("Display name shown in the batch dropdown")
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text=_("Uncheck to hide from the dropdown for new products without deleting existing data")
+    )
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name_plural = "Batches"
+
+    def __str__(self):
+        return self.label
 
 
 def get_upload_path(instance, filename):
@@ -129,9 +143,11 @@ class Product(models.Model):
         help_text=_("Secondary packaging (optional)")
     )
 
-    source_batch = models.CharField(
-        choices=BATCH_CHOICES,
+    source_batch = models.ForeignKey(
+        Batch,
+        on_delete=models.PROTECT,
         null=True,
+        related_name='products',
         help_text=_("Product collection batch")
     )
 
