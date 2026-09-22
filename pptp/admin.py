@@ -1,9 +1,17 @@
 from django.contrib import admin
-from .models.products import Batch, Product, Barcode, NutritionFacts, Ingredients, ProductImage
+from .models.products import Batch, Store, Product, Barcode, NutritionFacts, Ingredients, ProductImage
 
 
 @admin.register(Batch)
 class BatchAdmin(admin.ModelAdmin):
+    list_display = ['label', 'code', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['code', 'label']
+    prepopulated_fields = {'code': ('label',)}
+
+
+@admin.register(Store)
+class StoreAdmin(admin.ModelAdmin):
     list_display = ['label', 'code', 'is_active']
     list_filter = ['is_active']
     search_fields = ['code', 'label']

@@ -156,7 +156,15 @@
                 {% endif %}
               </div>
 
-              
+              <div style="margin-bottom: 10px;">
+                <label for="{{ form.store.id_for_label }}" class="form-label">Store</label>
+                {{ form.store }}
+                {% if form.store.errors %}
+                  <div class="invalid-feedback d-block">{{ form.store.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+
               <div class="form-check">
                 {{ form.needs_manual_verification }}
                 <label class="form-check-label" for="{{ form.needs_manual_verification.id_for_label }}">

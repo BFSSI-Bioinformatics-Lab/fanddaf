@@ -65,6 +65,34 @@ class Batch(models.Model):
         return self.label
 
 
+class Store(models.Model):
+    """
+    A store a product can be sourced from.
+    Managed through the Django admin so new stores can be added
+    without a code change or deployment.
+    """
+    code = models.SlugField(
+        max_length=50,
+        unique=True,
+        help_text=_("Short unique identifier, e.g. 'costco_on'")
+    )
+    label = models.CharField(
+        max_length=255,
+        help_text=_("Display name shown in the store dropdown, e.g. 'Costco, Ontario'")
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text=_("Uncheck to hide from the dropdown for new products without deleting existing data")
+    )
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name_plural = "Stores"
+
+    def __str__(self):
+        return self.label
+
+
 def get_upload_path(instance, filename):
     model_name = instance.__class__.__name__.lower()
     return f"{model_name}/{filename}"
@@ -149,6 +177,14 @@ class Product(models.Model):
         null=True,
         related_name='products',
         help_text=_("Product collection batch")
+    )
+
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name='products',
+        help_text=_("Store the product was sourced from")
     )
 
     num_units = models.IntegerField(blank=True, null=True, help_text=_("Number of individual units (optional)"))
