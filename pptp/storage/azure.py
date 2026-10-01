@@ -7,9 +7,15 @@ from azure.core.exceptions import (
     ClientAuthenticationError,
     AzureError
 )
+import logging
 import os
-from urllib.parse import urljoin
+from urllib.parse import parse_qs, urljoin, urlsplit
 from django.core.exceptions import SuspiciousOperation
+
+logger = logging.getLogger(__name__)
+
+# Permissions a token handed to browsers may carry: read and list only.
+READ_ONLY_PERMISSIONS = set("rl")
 
 
 class AzureBlobStorageError(Exception):
@@ -48,6 +54,7 @@ class AzureBlobStorage(Storage):
             self.account_url = required_settings['AZURE_ACCOUNT_URL']
             self.sas_token = required_settings['AZURE_SAS_TOKEN']
             self.container = required_settings['AZURE_CONTAINER']
+            self.read_sas_token = self._read_only_token(getattr(settings, 'AZURE_READ_SAS_TOKEN', None))
 
             self.client = BlobServiceClient(
                 account_url=self.account_url,
@@ -61,6 +68,24 @@ class AzureBlobStorage(Storage):
             raise AzureBlobStorageError(f"Azure storage configuration error: {str(e)}")
         except Exception as e:
             raise AzureBlobStorageError(f"Failed to initialize Azure storage: {str(e)}")
+
+    @staticmethod
+    def _read_only_token(token):
+        """The token for image URLs, which every page viewer can see.
+
+        AZURE_SAS_TOKEN can write and delete, so it must stay on the server. Refuse a
+        URL token that grants anything beyond read/list.
+        """
+        token = (token or "").strip().lstrip("?")
+        if not token:
+            logger.warning("AZURE_READ_SAS_TOKEN is not set: image URLs are sent without a token")
+            return ""
+        permissions = parse_qs(token).get("sp", [""])[0]
+        if not permissions or not set(permissions) <= READ_ONLY_PERMISSIONS:
+            raise AzureBlobStorageError(
+                f"AZURE_READ_SAS_TOKEN must be a read-only SAS (sp=r); it has sp={permissions or '(none)'}"
+            )
+        return token
 
     def __eq__(self, other):
         if not isinstance(other, AzureBlobStorage):
@@ -118,8 +143,11 @@ class AzureBlobStorage(Storage):
             raise AzureBlobStorageError(f"Failed to check file existence in Azure: {str(e)}")
 
     def url(self, name):
+        # The client's URL carries AZURE_SAS_TOKEN (write/delete). Drop it and add the
+        # read-only token instead.
         try:
-            return self.container_client.get_blob_client(name).url
+            blob_url = urlsplit(self.container_client.get_blob_client(name).url)._replace(query="").geturl()
+            return f"{blob_url}?{self.read_sas_token}" if self.read_sas_token else blob_url
         except ClientAuthenticationError:
             raise AzureBlobStorageError("Azure authentication token has expired")
         except AzureError as e:

@@ -303,5 +303,7 @@ SOCIALACCOUNT_FORMS = {"signup": "pptp.users.forms.UserSocialSignupForm"}
 # ------------------------------------------------------------------------------
 # Azure Storage Settings
 AZURE_ACCOUNT_URL = os.environ.get('AZURE_ACCOUNT_URL')
-AZURE_SAS_TOKEN = os.environ.get('AZURE_SAS_TOKEN')
+AZURE_SAS_TOKEN = os.environ.get('AZURE_SAS_TOKEN')  # server only: uploads and deletes
+# Read-only SAS (sp=r) added to image URLs, which browsers see. Never the token above.
+AZURE_READ_SAS_TOKEN = os.environ.get('AZURE_READ_SAS_TOKEN')
 AZURE_CONTAINER = os.environ.get('AZURE_CONTAINER', 'media')
